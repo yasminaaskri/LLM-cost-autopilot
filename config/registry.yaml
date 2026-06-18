@@ -1,0 +1,29 @@
+models: 
+   
+  llama-3.3-70b-versatile:
+    provider: "groq" 
+    model_id: "llama-3.3-70b-versatile"
+    cost_per_1k_input_usd: 0.00044  
+    cost_per_1k_output_usd: 0.00067  
+    quality_tier : "high"
+    avg_latency_ms : 300
+    display_name: "Llama 3.3 70B Versatile"
+  
+  gemini-2.5-flash:
+    provider: "google" 
+    model_id: "gemini-2.5-flash"
+    cost_per_1k_input_usd: 0.00030  
+    cost_per_1k_output_usd: 0.00025  
+    quality_tier : "medium"
+    avg_latency_ms : 800
+    display_name: "Gemini 2.5 Flash"
+
+  llama-3.1-8b-instant:
+    provider: "groq" 
+    model_id: "llama-3.1-8b-instant"
+    cost_per_1k_input_usd: 0.000035     
+    cost_per_1k_output_usd: 0.000055    
+    quality_tier : "low"
+    avg_latency_ms : 500
+    display_name: "Llama 3.1 8B Instant"
+  

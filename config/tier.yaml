@@ -1,0 +1,43 @@
+tiers:
+  1:
+    name: simple
+    description: >
+      Direct extraction, reformatting, yes/no from provided context,
+      regex-replaceable tasks, basic Q&A from given text.
+    routed_to: llama-3.1-8b-instant
+    examples:
+      - "Extract all email addresses from this text"
+      - "Reformat this JSON as a CSV"
+      - "Is this sentence grammatically correct? Yes or no."
+      - "What is the name field in this JSON: {...}"
+      - "Convert this date from MM/DD/YYYY to DD-MM-YYYY"
+      - "Is the following text in English? Reply yes or no."
+
+  2:
+    name: moderate
+    description: >
+      Summarization, multi-class classification, structured analysis
+      of provided text, translation, entity extraction with relationships.
+    routed_to: gemini-2.5-flash
+    examples:
+      - "Summarize this article in 3 bullet points"
+      - "Classify this customer message as: complaint, question, or compliment"
+      - "Extract key entities and their relationships from this paragraph"
+      - "Translate this paragraph to French"
+      - "Write a short product description based on these features"
+      - "Identify the sentiment of each sentence in this review"
+
+  3:
+    name: complex
+    description: >
+      Multi-step reasoning, synthesis across multiple sources,
+      judgment calls, creative generation, code writing, math,
+      strategy, nuanced analysis requiring world knowledge.
+    routed_to: llama-3.3-70b-versatile
+    examples:
+      - "Analyze the competitive landscape for EV batteries and recommend a market entry strategy"
+      - "Write a Python function to parse and validate nested JSON schemas"
+      - "What are the long-term second-order implications of this policy?"
+      - "Compare the trade-offs between microservices and a monolith for this use case"
+      - "Critique this business plan and identify the three biggest risks"
+      - "Explain how attention mechanisms work and why they replaced RNNs"

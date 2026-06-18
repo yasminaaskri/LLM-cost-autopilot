@@ -1,0 +1,30 @@
+# Environment variables (contains API keys - NEVER commit!)
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+data/*.db
+data/*.sqlite
+models/*.pkl
+*.log
+*.csv
+
+# OS
+.DS_Store
+Thumbs.db

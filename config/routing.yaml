@@ -1,0 +1,14 @@
+routing:
+  tier_1_model: llama-3.1-8b-instant      # cheapest — $0.000035/1k input
+  tier_2_model: gemini-2.5-flash           # balanced — $0.00030/1k input
+  tier_3_model: llama-3.3-70b-versatile   # highest quality — $0.00044/1k input
+  fallback_model: gemini-2.5-flash         # low-confidence safe default
+  low_confidence_threshold: 0.60           # below this → use fallback
+
+quality:
+  gap_threshold: 1.5        # judge score gap that triggers routing failure
+  min_cheap_score: 3.0      # cheap model must score at least this
+
+latency:
+  budget_ms: 10000          # total latency budget for escalation path
+  escalation_reserve_ms: 2000  # min remaining budget to attempt escalation
