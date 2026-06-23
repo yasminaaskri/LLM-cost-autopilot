@@ -113,10 +113,10 @@ class TestModelConfig:
 class TestCostCalculation:
 
     def test_calculate_cost_if_highest_quality_known_values(self):
-        # 1000 input + 1000 output at  Llama 3.3 70B pricing
-        # input: 1 * $0.005 = $0.005
-        # output: 1 * $0.015 = $0.015
-        # total: $0.020
+         # 1000 input + 1000 output at Llama 3.3 70B pricing
+         # input: 1 * $0.00044 = $0.00044
+         # output: 1 * $0.00067 = $0.00067
+         # total: $0.00111
         cost = calculate_cost_if_highest_quality(1000, 1000)
         assert abs(cost - 0.00111) < 1e-8
 
@@ -151,6 +151,8 @@ class TestCostCalculation:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Routing config tests
 # ════════════════════════
+class TestRoutingConfig:
+
     def test_routing_config_loads(self):
         routing = load_routing()
         assert "routing" in routing
