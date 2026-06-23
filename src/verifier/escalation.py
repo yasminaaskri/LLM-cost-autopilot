@@ -38,7 +38,7 @@ _expensive_model: Optional[ModelConfig] = None
 def _get_expensive_model() -> ModelConfig:
     global _expensive_model
     if _expensive_model is None:
-        _expensive_model = get_highest_quality_model(load_registry())
+        _expensive_model = get_highest_quality_model()
     return _expensive_model
 
 
@@ -74,6 +74,7 @@ async def escalate_if_needed(
     quality_score: QualityScore,
     classified_tier: int,
     elapsed_ms: float,
+    original_model: str,          # FIX 2: now populated by caller with cheap model id
 ) -> EscalationResult:
     """
     Decide whether to escalate and run the expensive model.
@@ -87,6 +88,7 @@ async def escalate_if_needed(
         quality_score:   Scores from the judge.
         classified_tier: What tier the classifier assigned.
         elapsed_ms:      Time already spent (API call + verification).
+        original_model:  model_id of the cheap model that handled the request.
 
     Returns:
         EscalationResult — always returned, escalated=True only if we
@@ -97,16 +99,20 @@ async def escalate_if_needed(
     # Always update quality score in DB regardless of escalation decision
     update_quality_score(request_id, quality_score)
 
-    # Case 1: routing was correct — nothing to do
+    # Case 1: routing was correct — write escalated=False and return
+    # FIX 1: was returning early without calling update_escalation(),
+    # leaving escalated=NULL in the DB for all correctly-routed requests.
     if not is_routing_failure(quality_score, gap_threshold, min_cheap_score):
-        return EscalationResult(
-            escalated      = False,
-            original_model = "",
-            escalated_model= None,
-            cost_delta_usd = 0.0,
-            output         = None,
-            reason         = "routing_correct",
+        result = EscalationResult(
+            escalated       = False,
+            original_model  = original_model,
+            escalated_model = None,
+            cost_delta_usd  = 0.0,
+            output          = None,
+            reason          = "routing_correct",
         )
+        update_escalation(request_id, result)   # ← was missing
+        return result
 
     # Always log the failure for the flywheel, regardless of escalation
     log_routing_failure(request_id, prompt, classified_tier, quality_score)
@@ -120,12 +126,12 @@ async def escalate_if_needed(
             remaining_ms, reserve_ms,
         )
         result = EscalationResult(
-            escalated      = False,
-            original_model = "",
-            escalated_model= None,
-            cost_delta_usd = 0.0,
-            output         = None,
-            reason         = "latency_budget_exhausted",
+            escalated       = False,
+            original_model  = original_model,
+            escalated_model = None,
+            cost_delta_usd  = 0.0,
+            output          = None,
+            reason          = "latency_budget_exhausted",
         )
         update_escalation(request_id, result)
         return result
@@ -144,7 +150,7 @@ async def escalate_if_needed(
         escalated_response = send_request(prompt, expensive_model)
         result = EscalationResult(
             escalated       = True,
-            original_model  = "",       # caller fills this in
+            original_model  = original_model,   # FIX 2: was always ""
             escalated_model = expensive_model.model_id,
             cost_delta_usd  = escalated_response.cost_usd,
             output          = escalated_response.output_text,
@@ -156,12 +162,12 @@ async def escalate_if_needed(
     except Exception as e:
         logger.error("Escalation API call failed: %s", e)
         result = EscalationResult(
-            escalated      = False,
-            original_model = "",
-            escalated_model= None,
-            cost_delta_usd = 0.0,
-            output         = None,
-            reason         = f"escalation_api_failed: {e}",
+            escalated       = False,
+            original_model  = original_model,   # FIX 2: was always ""
+            escalated_model = None,
+            cost_delta_usd  = 0.0,
+            output          = None,
+            reason          = f"escalation_api_failed: {e}",
         )
 
     update_escalation(request_id, result)

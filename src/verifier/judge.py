@@ -36,7 +36,7 @@ def _get_judge_model() -> ModelConfig:
     global _judge_model
     if _judge_model is None:
         registry     = load_registry()
-        _judge_model = get_highest_quality_model(registry)
+        _judge_model = get_highest_quality_model()
         logger.info("Judge model: %s", _judge_model.display_name)
     return _judge_model
 
