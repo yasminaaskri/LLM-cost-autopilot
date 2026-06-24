@@ -35,6 +35,10 @@ google-generativeai==0.7.0
 #Testing 
 pytest==7.4.3
 
+# ── Scheduling (worker cron) ──────────────────────────────────────────────────
+schedule>=1.2.0
+
+
 # Database (SQLite comes with Python, no install needed)
 # No extra packages needed
 

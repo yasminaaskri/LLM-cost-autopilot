@@ -1,0 +1,85 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# LLM Cost Autopilot — docker-compose.yml
+#
+# One-command startup:
+#   docker compose up
+#
+# Services:
+#   api        → http://localhost:8000  (FastAPI + Swagger at /docs)
+#   worker     → background verifier cron + retrain scheduler
+#   dashboard  → http://localhost:8501  (Streamlit)
+#
+# Shared volumes:
+#   autopilot_data    → data/autopilot.db   (SQLite — all three services read/write)
+#   autopilot_models  → models/classifier.pkl (retrain writes, api/worker read)
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── API service ─────────────────────────────────────────────────────────────
+  api:
+    build: .
+    container_name: autopilot_api
+    command: >
+      uvicorn src.api.main:app
+      --host 0.0.0.0
+      --port 8000
+      --log-level info
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      - autopilot_data:/app/data
+      - autopilot_models:/app/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  # ── Worker service ───────────────────────────────────────────────────────────
+  # Same image, different entrypoint.
+  # Runs the async verifier cron + weekly retrain scheduler.
+  # Depends on api being healthy so the DB is initialised before worker starts.
+  worker:
+    build: .
+    container_name: autopilot_worker
+    command: python scripts/worker.py
+    env_file: .env
+    volumes:
+      - autopilot_data:/app/data
+      - autopilot_models:/app/models
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Dashboard service ────────────────────────────────────────────────────────
+  dashboard:
+    build: .
+    container_name: autopilot_dashboard
+    command: >
+      streamlit run src/dashboard/app.py
+      --server.port 8501
+      --server.address 0.0.0.0
+      --server.headless true
+      --browser.gatherUsageStats false
+    ports:
+      - "8501:8501"
+    env_file: .env
+    volumes:
+      - autopilot_data:/app/data
+      - autopilot_models:/app/models
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+# ── Named volumes ─────────────────────────────────────────────────────────────
+volumes:
+  autopilot_data:
+    driver: local
+  autopilot_models:
+    driver: local
