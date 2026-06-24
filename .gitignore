@@ -28,3 +28,16 @@ models/*.pkl
 # OS
 .DS_Store
 Thumbs.db
+
+
+# Database files
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/*.sqlite
+
+# Temporary files
+*.log
+*.pyc
+__pycache__/
+.pytest_cache/
