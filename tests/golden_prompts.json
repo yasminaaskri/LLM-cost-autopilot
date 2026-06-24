@@ -1,0 +1,22 @@
+[
+  {"prompt": "Extract all email addresses from this text: Contact us at support@company.com or sales@firm.io for help.", "expected_tier": 1},
+  {"prompt": "Reformat this date from MM/DD/YYYY to DD-MM-YYYY: 06/17/2026", "expected_tier": 1},
+  {"prompt": "Is the following sentence grammatically correct? Reply yes or no. Sentence: 'She don't like coffee.'", "expected_tier": 1},
+  {"prompt": "Extract the product price from this text: The laptop costs $999.99", "expected_tier": 1},
+  {"prompt": "Count the number of words in this sentence: The quick brown fox jumps over the lazy dog", "expected_tier": 1},
+  {"prompt": "Convert 25 degrees Celsius to Fahrenheit", "expected_tier": 1},
+  {"prompt": "Is the word 'running' a verb? Answer yes or no.", "expected_tier": 1},
+  {"prompt": "Summarize the following paragraph in exactly 2 sentences: Artificial intelligence has transformed how companies operate, enabling automation of repetitive tasks, faster data analysis, and more personalised customer experiences. However, the rapid adoption of AI also raises concerns about job displacement, data privacy, and the concentration of power in the hands of a few large technology companies.", "expected_tier": 2},
+  {"prompt": "Classify this customer message into one of: complaint, question, compliment, or feature_request. Message: 'Your app keeps crashing whenever I try to export a PDF. This is really frustrating — I have lost work twice now.'", "expected_tier": 2},
+  {"prompt": "Translate the following sentence to French: 'The meeting has been rescheduled to Thursday at 3pm. Please update your calendars accordingly.'", "expected_tier": 2},
+  {"prompt": "Extract all named entities (people, organisations, locations) from this text and list them by category: 'Elon Musk announced that Tesla will open a new Gigafactory in Mexico City next year.'", "expected_tier": 2},
+  {"prompt": "Classify this sentiment as positive, negative, or neutral: 'The product is decent, but I expected better customer support. The software works fine though.'", "expected_tier": 2},
+  {"prompt": "Write a short product description based on these features: 'AI-powered chatbot, 24/7 support, multi-language, integrates with Slack and Teams'", "expected_tier": 2},
+  {"prompt": "Summarize this news article in 2 sentences: Climate change is accelerating at an alarming rate, with global temperatures rising faster than predicted.", "expected_tier": 2},
+  {"prompt": "Classify this email as spam or not spam: 'Dear Customer, You have been selected for an exclusive prize. Click here to claim your $1,000,000 reward now!'", "expected_tier": 2},
+  {"prompt": "Analyze the competitive landscape for EV batteries and recommend a market entry strategy. Consider: current players, cost trends, and geographic opportunities.", "expected_tier": 3},
+  {"prompt": "Write a Python function called flatten_dict that flattens a nested dict using dot-notation keys. Include type hints and a docstring.", "expected_tier": 3},
+  {"prompt": "What are the second-order economic consequences of widespread LLM adoption in knowledge work? Consider effects on wage levels for different skill brackets.", "expected_tier": 3},
+  {"prompt": "Compare the trade-offs between microservices and a monolith for a startup with 5 engineers building a B2B SaaS product.", "expected_tier": 3},
+  {"prompt": "Critique this business plan and identify the three biggest risks: 'We will build an AI-powered platform that connects freelancers with businesses.'", "expected_tier": 3}
+]

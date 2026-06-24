@@ -1,0 +1,99 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Create directories
+        run: mkdir -p data models logs
+      
+      - name: Create dummy .env
+        run: |
+          echo "GROQ_API_KEY=dummy" >> .env
+          echo "GOOGLE_API_KEY=dummy" >> .env
+      
+      - name: Run unit tests
+        run: |
+          pytest tests/test_day1.py \
+                 tests/test_day5.py \
+                 tests/test_verifier_escalation.py \
+                 -v --tb=short
+        env:
+          GROQ_API_KEY: dummy
+          GOOGLE_API_KEY: dummy
+      
+      - name: Train classifier for golden prompts
+        run: python -m src.classifier.train
+        env:
+          GROQ_API_KEY: dummy
+          GOOGLE_API_KEY: dummy
+      
+      - name: Run golden prompts regression gate
+        run: |
+          python -c "
+import sys
+import json
+from pathlib import Path
+
+sys.path.insert(0, str(Path.cwd()))
+
+from src.classifier.predict import classify_prompt
+
+# Load golden prompts
+golden_path = Path('tests/golden_prompts.json')
+if not golden_path.exists():
+    print('❌ golden_prompts.json not found!')
+    sys.exit(1)
+
+with open(golden_path) as f:
+    golden = json.load(f)
+
+# Test each prompt
+correct = 0
+total = len(golden)
+
+print(f'\n📊 Testing {total} golden prompts...\n')
+
+for i, test in enumerate(golden, 1):
+    prompt = test['prompt']
+    expected = test['expected_tier']
+    result = classify_prompt(prompt)
+    tier = result.tier
+    confidence = result.confidence
+    
+    status = '✅' if tier == expected else '❌'
+    print(f'{status} [{i}/{total}] Expected: T{expected}, Got: T{tier} (conf: {confidence:.2%})')
+    print(f'   Prompt: {prompt[:60]}...')
+    
+    if tier == expected:
+        correct += 1
+
+accuracy = correct / total
+print(f'\n' + '='*60)
+print(f'📊 Golden Prompts Accuracy: {accuracy:.0%} ({correct}/{total})')
+print('='*60)
+
+# Enforce 80% minimum
+assert accuracy >= 0.80, f'❌ Accuracy {accuracy:.0%} is below 80% gate!'
+print(f'✅ Accuracy {accuracy:.0%} meets or exceeds 80% gate!')
+"
+        env:
+          GROQ_API_KEY: dummy
+          GOOGLE_API_KEY: dummy
