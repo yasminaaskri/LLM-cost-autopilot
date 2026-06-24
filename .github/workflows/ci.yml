@@ -47,7 +47,7 @@ jobs:
       
       - name: Run golden prompts regression gate
         run: |
-          python -c "
+          python -c '
 import sys
 import json
 from pathlib import Path
@@ -57,9 +57,9 @@ sys.path.insert(0, str(Path.cwd()))
 from src.classifier.predict import classify_prompt
 
 # Load golden prompts
-golden_path = Path('tests/golden_prompts.json')
+golden_path = Path("tests/golden_prompts.json")
 if not golden_path.exists():
-    print('❌ golden_prompts.json not found!')
+    print("[ERROR] golden_prompts.json not found!")
     sys.exit(1)
 
 with open(golden_path) as f:
@@ -69,31 +69,34 @@ with open(golden_path) as f:
 correct = 0
 total = len(golden)
 
-print(f'\n📊 Testing {total} golden prompts...\n')
+print(f"\n[INFO] Testing {total} golden prompts...\n")
 
 for i, test in enumerate(golden, 1):
-    prompt = test['prompt']
-    expected = test['expected_tier']
+    prompt = test["prompt"]
+    expected = test["expected_tier"]
     result = classify_prompt(prompt)
     tier = result.tier
     confidence = result.confidence
     
-    status = '✅' if tier == expected else '❌'
-    print(f'{status} [{i}/{total}] Expected: T{expected}, Got: T{tier} (conf: {confidence:.2%})')
-    print(f'   Prompt: {prompt[:60]}...')
+    status = "[PASS]" if tier == expected else "[FAIL]"
+    print(f"{status} [{i}/{total}] Expected: T{expected}, Got: T{tier} (conf: {confidence:.2%})")
+    print(f"   Prompt: {prompt[:60]}...")
     
     if tier == expected:
         correct += 1
 
 accuracy = correct / total
-print(f'\n' + '='*60)
-print(f'📊 Golden Prompts Accuracy: {accuracy:.0%} ({correct}/{total})')
-print('='*60)
+print(f"\n" + "="*60)
+print(f"[RESULT] Golden Prompts Accuracy: {accuracy:.0%} ({correct}/{total})")
+print("="*60)
 
 # Enforce 80% minimum
-assert accuracy >= 0.80, f'❌ Accuracy {accuracy:.0%} is below 80% gate!'
-print(f'✅ Accuracy {accuracy:.0%} meets or exceeds 80% gate!')
-"
+if accuracy < 0.80:
+    print(f"[ERROR] Accuracy {accuracy:.0%} is below 80% gate!")
+    sys.exit(1)
+
+print(f"[SUCCESS] Accuracy {accuracy:.0%} meets or exceeds 80% gate!")
+'
         env:
           GROQ_API_KEY: dummy
           GOOGLE_API_KEY: dummy
