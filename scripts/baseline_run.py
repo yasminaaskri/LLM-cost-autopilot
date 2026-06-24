@@ -159,7 +159,7 @@ def run_single(provider_module, model_config, prompt_text: str) -> dict:
             "output_tokens": 0,
             "latency_ms":    round(latency_ms, 1),
             "cost_usd":      0.0,
-            "cost_if_gpt4o": 0.0,
+            "cost_if_highest_quality": 0.0,
             "savings_pct":   0.0,
             "error":         str(e),
         }
@@ -238,7 +238,7 @@ def main():
                 "output_tokens":   result["output_tokens"],
                 "latency_ms":      result["latency_ms"],
                 "cost_usd":        result["cost_usd"],
-                "cost_if_gpt4o":   result["cost_if_gpt4o"],
+                "cost_if_highest_quality": 0.0,
                 "savings_pct":     result["savings_pct"],
                 "output_preview":  result["output"][:150],
                 "error":           result["error"],
@@ -276,11 +276,11 @@ def main():
 
     print("-" * 70)
     total_cost  = sum(r["cost_usd"] for r in all_results if r["success"])
-    total_base  = sum(r["cost_if_gpt4o"] for r in all_results if r["success"])
+    total_base  = sum(r["cost_if_highest_quality"] for r in all_results if r["success"])
     if total_base > 0:
         overall_savings = (1 - total_cost / total_base) * 100
         print(f"\n✓ Total cost this run:     ${total_cost:.6f}")
-        print(f"✓ GPT-4o equivalent would: ${total_base:.6f}")
+        print(f"✓ Highest quality equivalent would: ${total_base:.6f}")
         print(f"✓ Overall savings:          {overall_savings:.1f}%")
 
     print("\n✓ Baseline run complete. Study the CSV before building the classifier.")
