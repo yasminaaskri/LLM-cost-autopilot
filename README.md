@@ -2,7 +2,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 
-> **Intelligent routing layer that reduces LLM API costs by 84% while maintaining quality parity.**
+> **Intelligent routing layer that sends each prompt to the cheapest capable LLM, with LLM-as-judge verification and automatic escalation.**
+>
+> On 96 logged requests, routing cost **40% less** than sending everything to Llama 3.3 70B (see [Results](#results) for how this was measured and its limits).
 
 ---
 
@@ -27,7 +29,7 @@
 
 ### The Problem
 
-Companies waste **$50,000–$100,000+ per month** on LLM APIs by using expensive models (GPT-4, Claude 3) for simple tasks. Up to 60% of requests could be handled by cheaper models without sacrificing quality.
+Many applications send every request to their most expensive model, even simple ones such as extraction, formatting or yes/no questions. Those prompts can often be served by a much cheaper model.
 
 ### The Solution
 
@@ -51,40 +53,49 @@ The system also:
 
 | Feature | Description |
 |---------|-------------|
-| 🧠 **Intelligent Routing** | Classifies prompts into 3 complexity tiers using a trained Random Forest classifier (89.5% accuracy) |
+| 🧠 **Intelligent Routing** | Classifies prompts into 3 complexity tiers using a Random Forest classifier trained on 189 hand-labeled prompts |
 | 🤖 **LLM-as-Judge** | Asynchronously verifies quality using the best model as judge (Llama 3.3 70B) |
 | ⚡ **Auto-Escalation** | Automatically re-runs with expensive model when cheap model quality < 3.0/5 |
 | 🔄 **Self-Improving** | Weekly retraining on routing failures (the flywheel) |
 | 📊 **Real-Time Dashboard** | Live cost savings, routing distribution, and quality metrics |
 | ⚙️ **Hot-Reload Routing** | Change tier→model mapping without restarting the server |
 | 🐳 **Docker Ready** | One-command deployment with Docker Compose |
-| ✅ **CI/CD Pipeline** | Automated testing and golden prompts regression (95% accuracy) |
+| ✅ **CI/CD Pipeline** | Pytest unit tests in GitHub Actions; 20-prompt golden-set regression test (80% gate) |
 | 🔍 **Full Audit Trail** | Every request logged with cost baseline for savings calculation |
 
 ---
 
 ## Results
 
-### 📊 Key Metrics
+### 📊 Measured results
 
-| Metric | Value |
-|--------|-------|
-| **Cost Savings** | 84% on 200+ requests |
-| **Classifier Accuracy** | 89.5% |
-| **Golden Prompts Accuracy** | 95% (19/20) |
-| **Escalation Rate** | <5% |
-| **Average Response Time** | ~500ms |
-| **Routing Overhead** | <50ms |
+| Metric | Value | How it was measured |
+|--------|-------|---------------------|
+| **Cost reduction** | **40.4%** (37.3% including escalations) | 96 logged requests (49 distinct prompts), June 2026, vs. sending every request to Llama 3.3 70B |
+| **Classifier accuracy** | 89.5% | Held-out 20% split of the 189 labeled prompts |
+| **Golden prompts** | 19/20 | `tests/golden_prompts.json`, run locally |
 
-### 💰 Cost Savings Breakdown
+### 💲 Model tiers
 
-| Model | Cost per 1k Input | Cost per 1k Output | Used For | % of Requests |
-|-------|-------------------|--------------------|----------|---------------|
-| Llama 3.3 70B | $0.00044 | $0.00067 | Complex tasks | 25% |
-| Gemini 2.5 Flash | $0.00030 | $0.00025 | Moderate tasks | 40% |
-| Llama 3.1 8B | $0.000035 | $0.000055 | Simple tasks | 35% |
+| Tier | Model | Cost per 1k Input | Cost per 1k Output | Used For |
+|------|-------|-------------------|--------------------|----------|
+| Complex | Llama 3.3 70B | $0.00044 | $0.00067 | Reasoning, coding, analysis |
+| Moderate | Gemini 2.5 Flash | $0.00030 | $0.00025 | Summarization, classification |
+| Simple | Llama 3.1 8B | $0.000035 | $0.000055 | Extraction, formatting, yes/no |
 
-**Total Savings: 84% compared to using Llama 3.3 70B for everything!**
+### ⚠️ Limitations of the current evaluation
+
+- **The baseline is a price calculation, not a separate run.** Each request's real token counts are priced at Llama 3.3 70B rates. 70B was not called to measure its own output length.
+- **The 96 requests come from several manual runs**, not one fixed benchmark. Savings varied from 5% to 92% per day depending on the prompt mix.
+- **Quality was only spot-checked.** 10 of the 96 requests were scored by the judge, so this README makes **no quality-parity claim**. Some Gemini 2.5 Flash answers were truncated and scored poorly.
+- **The judge is the same model as the baseline** (Llama 3.3 70B), so self-preference bias is possible.
+
+### 🔜 Next evaluation steps
+
+1. Run `scripts/load_test.py` on its fixed, seeded 200-prompt set and commit the results.
+2. Score every request with the verifier and store both the routed and the reference score.
+3. Use a judge from a different model family than the baseline.
+4. Fix the Gemini output truncation before re-measuring.
 
 ---
 
